@@ -71,6 +71,12 @@ function Get-VstsWorkItem
     if ($PSBoundParameters.ContainsKey('Id'))
     {
         $path = ('{0}/{1}' -f $path, $Id)
+
+		$additionalInvokeParameters = @{
+            QueryStringExtParameters = Get-VstsQueryStringParametersFromBound `
+                -BoundParameters $PSBoundParameters `
+                -ParameterList 'expand'
+        }
     }
     else
     {
@@ -89,7 +95,6 @@ function Get-VstsWorkItem
 
     $result = Invoke-VstsEndpoint `
         -Session $Session `
-        -Project $Project `
         -Path $path `
         @additionalInvokeParameters
 
@@ -122,6 +127,10 @@ function Get-VstsWorkItem
     A hash table containing the properties to set for the new
     work item.
 
+	.PARAMETER RelationsHashtable
+    A hash table containing the parent item for the new
+    work item.
+
     .EXAMPLE
     >
     $vstsSession = New-VSTSSession `
@@ -134,6 +143,7 @@ function Get-VstsWorkItem
         -Project 'FabrikamFiber' `
         -WorkItemType 'User Story' `
         -PropertyHashtable @{ 'System.Title' = 'Add support for creating new work item' }
+		-RelationsHashtable @{ 'System.LinkTypes.Hierarchy-Reverse' = 'https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297' }
 
     Creates a new user story in FabrikamFiber project with the
     title 'Add support for creating new work item'
@@ -162,7 +172,10 @@ function New-VstsWorkItem
         [string] $WorkItemType,
 
         [Parameter(Mandatory = $True)]
-        [Hashtable]	$PropertyHashtable
+        [Hashtable]	$PropertyHashtable,
+
+		[Parameter(Mandatory = $True)]
+        [Hashtable]	$RelationsHashtable
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'Account')
@@ -181,12 +194,29 @@ function New-VstsWorkItem
         }
     }
 
+	$fields += foreach ($kvp in $RelationsHashtable.GetEnumerator())
+    {
+        [PSCustomObject] @{
+            op    = 'add'
+            path  = ('/relations/-')
+			
+            value = [PSCustomObject] @{ 
+				rel = $kvp.key
+				url = $kvp.value
+			}
+        }
+    }
+
     $body = $fields | ConvertTo-Json
+
+	Write-Host $body -ForegroundColor Green
 
     if ($fields.Count -lt 2)
     {
         $body = ('[{0}]' -f $body)
     }
+
+	Write-Host $body -ForegroundColor Blue
 
     $result = Invoke-VstsEndpoint `
         -Session $Session `
