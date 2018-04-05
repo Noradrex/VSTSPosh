@@ -174,7 +174,7 @@ function New-VstsWorkItem
         [Parameter(Mandatory = $True)]
         [Hashtable]	$PropertyHashtable,
 
-		[Parameter(Mandatory = $True)]
+		[Parameter(Mandatory = $False)]
         [Hashtable]	$RelationsHashtable
     )
 
@@ -194,29 +194,36 @@ function New-VstsWorkItem
         }
     }
 
-	$fields += foreach ($kvp in $RelationsHashtable.GetEnumerator())
+    Write-Host ($fields | Format-List | Out-String) -ForegroundColor White
+    Write-Host ($RelationsHashtable | Format-List | Out-String) -ForegroundColor Yellow
+
+    if ($RelationsHashtable.Count -gt 0)
     {
-        [PSCustomObject] @{
-            op    = 'add'
-            path  = ('/relations/-')
-			
-            value = [PSCustomObject] @{ 
-				rel = $kvp.key
-				url = $kvp.value
-			}
+        $fields += foreach ($kvp in $RelationsHashtable.GetEnumerator())
+        {
+            [PSCustomObject] @{
+                op    = 'add'
+                path  = ('/relations/-')
+                
+                value = [PSCustomObject] @{ 
+                    rel = $kvp.key
+                    url = $kvp.value
+                }
+            }
         }
     }
 
+    Write-Host ($fields | Format-List | Out-String) -ForegroundColor Cyan
+    
+
     $body = $fields | ConvertTo-Json
 
-	Write-Host $body -ForegroundColor Green
-
+    Write-Host ($body | Format-List | Out-String) -ForegroundColor Green
+	
     if ($fields.Count -lt 2)
     {
         $body = ('[{0}]' -f $body)
     }
-
-	Write-Host $body -ForegroundColor Blue
 
     $result = Invoke-VstsEndpoint `
         -Session $Session `
