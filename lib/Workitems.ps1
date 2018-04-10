@@ -194,9 +194,6 @@ function New-VstsWorkItem
         }
     }
 
-    Write-Host ($fields | Format-List | Out-String) -ForegroundColor White
-    Write-Host ($RelationsHashtable | Format-List | Out-String) -ForegroundColor Yellow
-
     if ($RelationsHashtable.Count -gt 0)
     {
         $fields += foreach ($kvp in $RelationsHashtable.GetEnumerator())
@@ -213,12 +210,7 @@ function New-VstsWorkItem
         }
     }
 
-    Write-Host ($fields | Format-List | Out-String) -ForegroundColor Cyan
-    
-
     $body = $fields | ConvertTo-Json
-
-    Write-Host ($body | Format-List | Out-String) -ForegroundColor Green
 	
     if ($fields.Count -lt 2)
     {
@@ -250,6 +242,23 @@ function New-VstsWorkItem
 
     .PARAMETER Session
     The session object created by New-VstsSession.
+
+    .EXAMPLE
+    >
+    $vstsSession = New-VSTSSession `
+        -AccountName 'myvstsaccount' `
+        -User 'joe.bloggs@fabrikam.com' `
+        -Token 'hi3pxk5usaag6jslczs5bqmlkngvhr3czqyh65jdvlvtt3qkh4ya'
+
+    New-VstsWorkItem `
+        -Session $vstsSession `
+        -Project 'FabrikamFiber' `
+        -WorkItemType 'User Story' `
+        -PropertyHashtable @{ 'System.Title' = 'Add support for creating new work item' }
+		-RelationsHashtable @{ 'System.LinkTypes.Hierarchy-Reverse' = 'https://fabrikam-fiber-inc.visualstudio.com/DefaultCollection/_apis/wit/workItems/297' }
+
+    Creates a new user story in FabrikamFiber project with the
+    title 'Add support for creating new work item'
 #>
 function Get-VstsWorkItemQuery
 {
