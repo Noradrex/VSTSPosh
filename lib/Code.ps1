@@ -585,39 +585,41 @@ function ConvertTo-VstsGitRepository
 function Get-VstsTfvcChangesets
 {
     #https://docs.microsoft.com/en-us/rest/api/vsts/tfvc/changesets/get%20changesets
-    #GET https://{accountName}.visualstudio.com/{project}/_apis/tfvc/changesets?maxCommentLength={maxCommentLength}&$skip={$skip}&$top={$top}&$orderby={$orderby}&searchCriteria.includeLinks={searchCriteria.includeLinks}&searchCriteria.followRenames={searchCriteria.followRenames}&searchCriteria.toId={searchCriteria.toId}&searchCriteria.fromId={searchCriteria.fromId}&searchCriteria.toDate={searchCriteria.toDate}&searchCriteria.fromDate={searchCriteria.fromDate}&searchCriteria.author={searchCriteria.author}&searchCriteria.itemPath={searchCriteria.itemPath}&api-version=4.1
+    #GET https://{accountName}.visualstudio.com/{project}/_apis/tfvc/changesets?&searchCriteria.toDate={searchCriteria.toDate}&searchCriteria.fromDate={searchCriteria.fromDate}&api-version=4.1
+    #TEST /_apis/tfvc/changesets?api-version=4.1&searchCriteria.toDate=2018-04-19T00:00:00.253Z&searchCriteria.fromDate=2018-04-18T00:00:00.253Z&searchCriteria.itemPath=%24%2FKPMG Impulsa%2Fproducción&api-version=4.1
+    [CmdletBinding(DefaultParameterSetName = 'Account')]
+    param
+    (
+        [Parameter(Mandatory = $True, ParameterSetName = 'Account')]
+        [String] $AccountName,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Account')]
+        [String] $User,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Account')]
+        [String] $Token,
+
+        [Parameter(Mandatory = $True, ParameterSetName = 'Session')]
+        $Session,
+
+        [Parameter(Mandatory = $true)]
+        [String] $StartDate,
+
+        [Parameter(Mandatory = $true)]
+        [String[]] $EndDate
+
+    )
     if ($PSCmdlet.ParameterSetName -eq 'Account')
     {
         $Session = New-VstsSession -AccountName $AccountName -User $User -Token $Token
     }
 
     $path = 'tfvc/changesets'
-    $additionalInvokeParameters = @{}
 
-    if ($PSBoundParameters.ContainsKey('Id'))
-    {
-        $path = ('{0}/{1}' -f $path, $Id)
-
-		$additionalInvokeParameters = @{
-            QueryStringExtParameters = Get-VstsQueryStringParametersFromBound `
-                -BoundParameters $PSBoundParameters `
-                -ParameterList 'expand'
-        }
-    }
-    else
-    {
-        # Convert the Ids into a comma delimited string
-        $PSBoundParameters['Ids'] = ($PSBoundParameters['Ids'] -join ',')
-
-        $additionalInvokeParameters = @{
-            QueryStringParameters    = Get-VstsQueryStringParametersFromBound `
-                -BoundParameters $PSBoundParameters `
-                -ParameterList 'ids', 'asOf'
-            QueryStringExtParameters = Get-VstsQueryStringParametersFromBound `
-                -BoundParameters $PSBoundParameters `
-                -ParameterList 'expand'
-        }
-    }
+    #2018-04-18T00:00:00.253Z
+    #2018-04-19T00:00:00.253Z
+    #%24%2FKPMG Impulsa%2Fproducción
+    $path = ('{0}?api-version={1}&searchCriteria.fromDate={2}&searchCriteria.toDate={3}&searchCriteria.itemPath={4}' -f $path,"4.1" $StartDate, $EndDate, $AreaPath)
 
     $result = Invoke-VstsEndpoint `
         -Session $Session `
