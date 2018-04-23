@@ -586,7 +586,7 @@ function Get-VstsTfvcChangesets
 {
     #https://docs.microsoft.com/en-us/rest/api/vsts/tfvc/changesets/get%20changesets
     #GET https://{accountName}.visualstudio.com/{project}/_apis/tfvc/changesets?&searchCriteria.toDate={searchCriteria.toDate}&searchCriteria.fromDate={searchCriteria.fromDate}&api-version=4.1
-    #TEST /_apis/tfvc/changesets?api-version=4.1&searchCriteria.toDate=2018-04-19T00:00:00.253Z&searchCriteria.fromDate=2018-04-18T00:00:00.253Z&searchCriteria.itemPath=%24%2FKPMG Impulsa%2Fproducción&api-version=4.1
+    #TEST /_apis/tfvc/changesets?api-version=4.1&searchCriteria.toDate=2018-04-19T00:00:00.253Z&searchCriteria.fromDate=2018-04-18T00:00:00.253Z&searchCriteria.itemPath=%24%2FPROJECTNAME&api-version=4.1
     [CmdletBinding(DefaultParameterSetName = 'Account')]
     param
     (
