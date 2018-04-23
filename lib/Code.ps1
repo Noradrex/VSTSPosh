@@ -581,3 +581,50 @@ function ConvertTo-VstsGitRepository
     Pop-Location
     Remove-Item -Path (Split-Path -Path $SourceFolder -Leaf) -Force
 }
+
+function Get-VstsTfvcChangesets
+{
+    #https://docs.microsoft.com/en-us/rest/api/vsts/tfvc/changesets/get%20changesets
+    #GET https://{accountName}.visualstudio.com/{project}/_apis/tfvc/changesets?maxCommentLength={maxCommentLength}&$skip={$skip}&$top={$top}&$orderby={$orderby}&searchCriteria.includeLinks={searchCriteria.includeLinks}&searchCriteria.followRenames={searchCriteria.followRenames}&searchCriteria.toId={searchCriteria.toId}&searchCriteria.fromId={searchCriteria.fromId}&searchCriteria.toDate={searchCriteria.toDate}&searchCriteria.fromDate={searchCriteria.fromDate}&searchCriteria.author={searchCriteria.author}&searchCriteria.itemPath={searchCriteria.itemPath}&api-version=4.1
+    if ($PSCmdlet.ParameterSetName -eq 'Account')
+    {
+        $Session = New-VstsSession -AccountName $AccountName -User $User -Token $Token
+    }
+
+    $path = 'tfvc/changesets'
+    $additionalInvokeParameters = @{}
+
+    if ($PSBoundParameters.ContainsKey('Id'))
+    {
+        $path = ('{0}/{1}' -f $path, $Id)
+
+		$additionalInvokeParameters = @{
+            QueryStringExtParameters = Get-VstsQueryStringParametersFromBound `
+                -BoundParameters $PSBoundParameters `
+                -ParameterList 'expand'
+        }
+    }
+    else
+    {
+        # Convert the Ids into a comma delimited string
+        $PSBoundParameters['Ids'] = ($PSBoundParameters['Ids'] -join ',')
+
+        $additionalInvokeParameters = @{
+            QueryStringParameters    = Get-VstsQueryStringParametersFromBound `
+                -BoundParameters $PSBoundParameters `
+                -ParameterList 'ids', 'asOf'
+            QueryStringExtParameters = Get-VstsQueryStringParametersFromBound `
+                -BoundParameters $PSBoundParameters `
+                -ParameterList 'expand'
+        }
+    }
+
+    $result = Invoke-VstsEndpoint `
+        -Session $Session `
+        -Path $path `
+        @additionalInvokeParameters
+
+    return $result.Value
+
+
+}
