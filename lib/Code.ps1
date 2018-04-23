@@ -616,9 +616,6 @@ function Get-VstsTfvcChangesets
 
     $path = 'tfvc/changesets'
 
-    #2018-04-18T00:00:00.253Z
-    #2018-04-19T00:00:00.253Z
-    #%24%2FKPMG Impulsa%2Fproducción
     $path = ('{0}?api-version={1}&searchCriteria.fromDate={2}&searchCriteria.toDate={3}&searchCriteria.itemPath={4}' -f $path,"4.1" $StartDate, $EndDate, $AreaPath)
 
     $result = Invoke-VstsEndpoint `
