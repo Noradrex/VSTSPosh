@@ -616,7 +616,7 @@ function Get-VstsTfvcChangesets
 
     $path = 'tfvc/changesets'
 
-    $path = ('{0}?api-version={1}&searchCriteria.fromDate={2}&searchCriteria.toDate={3}&searchCriteria.itemPath={4}' -f $path,"4.1" $StartDate, $EndDate, $AreaPath)
+    $path = ('{0}?api-version={1}&searchCriteria.fromDate={2}&searchCriteria.toDate={3}&searchCriteria.itemPath={4}' -f $path,"4.1", $StartDate, $EndDate, $AreaPath)
 
     $result = Invoke-VstsEndpoint `
         -Session $Session `
