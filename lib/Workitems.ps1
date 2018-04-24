@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Get work items from VSTS.
 

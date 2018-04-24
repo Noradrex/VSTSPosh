@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Gets Git repositories in the specified team project.
 
@@ -606,7 +606,10 @@ function Get-VstsTfvcChangesets
         [String] $StartDate,
 
         [Parameter(Mandatory = $true)]
-        [String[]] $EndDate
+        [String[]] $EndDate,
+
+        [Parameter(Mandatory = $true)]
+        [String[]] $AreaPath
 
     )
     if ($PSCmdlet.ParameterSetName -eq 'Account')
@@ -616,12 +619,58 @@ function Get-VstsTfvcChangesets
 
     $path = 'tfvc/changesets'
 
-    $path = ('{0}?api-version={1}&searchCriteria.fromDate={2}&searchCriteria.toDate={3}&searchCriteria.itemPath={4}' -f $path,"4.1", $StartDate, $EndDate, $AreaPath)
+    $path = ('{0}' -f $path)
+
+    $queryStringParameters = New-Object System.Collections.Hashtable
+    $queryStringParameters.Add("searchCriteria.fromDate",$StartDate)
+    $queryStringParameters.Add("searchCriteria.toDate",$EndDate)
+    $queryStringParameters.Add("searchCriteria.itemPath",$AreaPath)
 
     $result = Invoke-VstsEndpoint `
         -Session $Session `
         -Path $path `
-        @additionalInvokeParameters
+        -ApiVersion "4.1" `
+        -QueryStringParameters $queryStringParameters
+
+    return $result.Value
+
+}
+
+
+function Get-VstsTfvcChangesetChanges
+{
+    [CmdletBinding(DefaultParameterSetName = 'Account')]
+    param
+    (
+        [Parameter(Mandatory = $True, ParameterSetName = 'Account')]
+        [String] $AccountName,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Account')]
+        [String] $User,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Account')]
+        [String] $Token,
+
+        [Parameter(Mandatory = $True, ParameterSetName = 'Session')]
+        $Session,
+
+        [Parameter(Mandatory = $true)]
+        [String] $Id
+
+    )
+    if ($PSCmdlet.ParameterSetName -eq 'Account')
+    {
+        $Session = New-VstsSession -AccountName $AccountName -User $User -Token $Token
+    }
+
+    $path = 'tfvc/changesets'
+    #https://{accountName}.visualstudio.com/_apis/tfvc/changesets/{id}/changes?api-version=4.1
+    $path = ('{0}/{1}/changes' -f $path, $Id)
+
+    $result = Invoke-VstsEndpoint `
+        -Session $Session `
+        -Path $path `
+        -ApiVersion "4.1"
 
     return $result.Value
 

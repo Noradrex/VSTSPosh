@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Get projects in a VSTS account.
 

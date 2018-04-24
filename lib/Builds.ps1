@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Gets a team project build definitions.
 

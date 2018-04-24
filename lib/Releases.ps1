@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
     Gets team project release definitions.
 

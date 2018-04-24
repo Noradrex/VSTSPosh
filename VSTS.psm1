@@ -247,7 +247,7 @@ function Invoke-VstsEndpoint
         [Uri] $Path,
 
         [Parameter()]
-        [String] $ApiVersion = '1.0',
+        [String] $ApiVersion = '2.0',
 
         [ValidateSet('GET', 'PUT', 'POST', 'DELETE', 'PATCH')]
         [String] $Method = 'GET',
@@ -256,44 +256,30 @@ function Invoke-VstsEndpoint
         [String] $Body,
 
         [Parameter()]
-        [String] $EndpointName,
+        [String] $EndpointName
 
-        [Parameter()]
-        [Hashtable] $QueryStringExtParameters
     )
 
-    $queryString = [System.Web.HttpUtility]::ParseQueryString([string]::Empty)
+    $queryString = ""
 
     if ($QueryStringParameters -ne $null)
     {
         foreach ($parameter in $QueryStringParameters.GetEnumerator())
         {
-            $queryString[$parameter.Key] = $parameter.Value
+            $queryString += [System.Uri]::EscapeUriString($parameter.Key)+"="+[System.Uri]::EscapeUriString($parameter.Value)+"&"
         }
     }
 
-    <#
-        These are query parmaeters that will be added prepended with a $.
-        They can't be passed in the QueryStringParameters.
-    #>
-    if ($QueryStringExtParameters -ne $null)
-    {
-        foreach ($parameter in $QueryStringExtParameters.GetEnumerator())
-        {
-            $queryString['$' + $parameter.Key] = $parameter.Value
-        }
-    }
+    $queryString += [System.Uri]::EscapeUriString("api-version")+"="+[System.Uri]::EscapeUriString($ApiVersion)
 
-    $queryString["api-version"] = $ApiVersion
-    $queryString = $queryString.ToString()
-
+    Write-Host $queryString -ForegroundColor Yellow
     $authorization = Get-VstsAuthorization -User $Session.User -Token $Session.Token
 
     $collection = $Session.Collection
 
     $uriBuilder = Get-VstsEndpointUri -Session $Session -EndpointName $EndpointName
     $uriBuilder.Query = $queryString
-
+    Write-Host $uriBuilder.Query -ForegroundColor Green
     if ([String]::IsNullOrEmpty($Project))
     {
         $uriBuilder.Path = ('{0}/_apis/{1}' -f $collection, $Path)
@@ -304,8 +290,7 @@ function Invoke-VstsEndpoint
     }
 
     $uri = $uriBuilder.Uri
-
-    Write-Verbose -Message "Invoke URI [$uri]"
+    Write-Host "Invoke URI [$uri]"
 
     $contentType = 'application/json'
     $invokeRestMethodParameters = @{
