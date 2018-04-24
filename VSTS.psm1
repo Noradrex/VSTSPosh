@@ -272,14 +272,13 @@ function Invoke-VstsEndpoint
 
     $queryString += [System.Uri]::EscapeUriString("api-version")+"="+[System.Uri]::EscapeUriString($ApiVersion)
 
-    Write-Host $queryString -ForegroundColor Yellow
     $authorization = Get-VstsAuthorization -User $Session.User -Token $Session.Token
 
     $collection = $Session.Collection
 
     $uriBuilder = Get-VstsEndpointUri -Session $Session -EndpointName $EndpointName
     $uriBuilder.Query = $queryString
-    Write-Host $uriBuilder.Query -ForegroundColor Green
+
     if ([String]::IsNullOrEmpty($Project))
     {
         $uriBuilder.Path = ('{0}/_apis/{1}' -f $collection, $Path)
@@ -290,8 +289,6 @@ function Invoke-VstsEndpoint
     }
 
     $uri = $uriBuilder.Uri
-    Write-Host "Invoke URI [$uri]"
-
     $contentType = 'application/json'
     $invokeRestMethodParameters = @{
         Uri         = $Uri
