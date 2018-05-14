@@ -240,6 +240,9 @@ function Invoke-VstsEndpoint
         [Hashtable] $QueryStringParameters,
 
         [Parameter()]
+        [Hashtable] $QueryStringExtParameters,
+
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [String] $Project,
 
@@ -247,7 +250,7 @@ function Invoke-VstsEndpoint
         [Uri] $Path,
 
         [Parameter()]
-        [String] $ApiVersion = '2.0',
+        [String] $ApiVersion = '4.1',
 
         [ValidateSet('GET', 'PUT', 'POST', 'DELETE', 'PATCH')]
         [String] $Method = 'GET',
@@ -265,6 +268,14 @@ function Invoke-VstsEndpoint
     if ($QueryStringParameters -ne $null)
     {
         foreach ($parameter in $QueryStringParameters.GetEnumerator())
+        {
+            $queryString += [System.Uri]::EscapeUriString($parameter.Key)+"="+[System.Uri]::EscapeUriString($parameter.Value)+"&"
+        }
+    }
+
+    if ($QueryStringExtParameters -ne $null)
+    {
+        foreach ($parameter in $QueryStringExtParameters.GetEnumerator())
         {
             $queryString += [System.Uri]::EscapeUriString($parameter.Key)+"="+[System.Uri]::EscapeUriString($parameter.Value)+"&"
         }
@@ -289,7 +300,7 @@ function Invoke-VstsEndpoint
     }
 
     $uri = $uriBuilder.Uri
-    $contentType = 'application/json'
+    $contentType = 'application/json; charset=utf-8'
     $invokeRestMethodParameters = @{
         Uri         = $Uri
         Method      = $Method
@@ -301,7 +312,7 @@ function Invoke-VstsEndpoint
     {
         if ($Method -eq 'PATCH')
         {
-            $invokeRestMethodParameters['contentType'] = 'application/json-patch+json'
+            $invokeRestMethodParameters['contentType'] = 'application/json-patch+json; charset=utf-8'
         }
 
         $invokeRestMethodParameters += @{
